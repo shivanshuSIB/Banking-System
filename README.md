@@ -828,8 +828,6 @@ DATABASE_URL="postgres://banking:banking@localhost:5433/banking?sslmode=disable"
 ### Money as int64 (smallest currency unit)
 Floating-point arithmetic introduces rounding errors (`0.1 + 0.2 != 0.3`). By storing everything as integers in the smallest currency unit (paise for INR, cents for USD), arithmetic is exact. The API accepts and returns these integer values; the client is responsible for display formatting.
 
-### Denormalized balance on accounts
-The `accounts.balance` column is redundant -- it could always be recomputed from `SUM(journal_entries.amount)`. However, keeping it denormalized means reads are O(1) instead of scanning the journal. The balance is always updated in the same DB transaction as the journal entries, so consistency is guaranteed.
 
 ### failTransaction uses a separate connection
 When an operation fails, the main transaction must be rolled back before the audit write: otherwise the uncommitted PENDING row blocks the audit `INSERT` on another connection and can deadlock. After `Rollback`, `failTransaction` opens a **new** database transaction to insert the FAILED row so every attempt is logged.
@@ -837,8 +835,7 @@ When an operation fails, the main transaction must be rolled back before the aud
 ### Idempotency check outside the serializable transaction
 The idempotency lookup runs before `BeginTx(SERIALIZABLE)`. This is a pragmatic choice: checking idempotency in a read-only query is cheap and avoids holding a serializable transaction open while doing a lookup. There is a small race window where two requests with the same key could both pass the check, but the `UNIQUE` constraint on `idempotency_key` in the database prevents both from succeeding.
 
-### No external framework for HTTP
-The handler uses Go's standard `net/http.ServeMux`. This keeps dependencies minimal. Path parameter parsing is done manually by stripping known prefixes. For a larger project, a router like chi or gorilla/mux would be more appropriate.
+
 
 ### Single currency simplification
 Accounts have a `currency` field but the system does not enforce currency matching between accounts in a transfer. In a production system, cross-currency transfers would require exchange rate handling.
