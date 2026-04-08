@@ -86,7 +86,7 @@ sequenceDiagram
     Main->>Run: run()
     Run->>Run: getFlags()
     Run->>DIC: newDIContainer(flg)
-    Note over DIC: register providers only; no DB yet
+    Note over DIC: register providers only – no DB yet
     Run->>HH: dic.httpHandler()
     HH->>DB: cascade: first db() opens pool, runs migrations
     HH-->>Run: http.Handler
@@ -114,7 +114,7 @@ flowchart TD
     E --> G[Decode JSON → domain request DTO]
     G --> H{Parse OK?}
     H -->|no| I[400 Bad Request]
-    H -->|yes| J[ledger.Transfer(ctx, req)]
+    H -->|yes| J["ledger.Transfer(ctx, req)"]
 
     J --> K{Domain error?}
     K -->|yes| L[Map to 404 / 422 / 500 / 200 idempotent replay]
