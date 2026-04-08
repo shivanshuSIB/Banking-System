@@ -1,0 +1,418 @@
+basePath: /api
+definitions:
+  domain.Account:
+    properties:
+      balance:
+        description: cents
+        type: integer
+      created_at:
+        type: string
+      currency:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  domain.DepositRequest:
+    properties:
+      account_id:
+        type: string
+      amount:
+        description: cents, must be > 0
+        type: integer
+      idempotency_key:
+        type: string
+      note:
+        type: string
+    type: object
+  domain.ReversalRequest:
+    properties:
+      idempotency_key:
+        type: string
+      note:
+        type: string
+      transaction_id:
+        type: string
+    type: object
+  domain.Transaction:
+    properties:
+      amount:
+        description: cents, always positive
+        type: integer
+      created_at:
+        type: string
+      error_message:
+        type: string
+      from_account_id:
+        type: string
+      id:
+        type: string
+      idempotency_key:
+        type: string
+      note:
+        type: string
+      reversal_of:
+        type: string
+      status:
+        $ref: '#/definitions/domain.TransactionStatus'
+      to_account_id:
+        type: string
+      type:
+        $ref: '#/definitions/domain.TransactionType'
+    type: object
+  domain.TransactionStatus:
+    enum:
+    - PENDING
+    - SUCCESS
+    - FAILED
+    type: string
+    x-enum-varnames:
+    - StatusPending
+    - StatusSuccess
+    - StatusFailed
+  domain.TransactionType:
+    enum:
+    - DEPOSIT
+    - WITHDRAWAL
+    - TRANSFER
+    - REVERSAL
+    type: string
+    x-enum-varnames:
+    - TypeDeposit
+    - TypeWithdrawal
+    - TypeTransfer
+    - TypeReversal
+  domain.TransferRequest:
+    properties:
+      amount:
+        description: cents, must be > 0
+        type: integer
+      from_account_id:
+        type: string
+      idempotency_key:
+        type: string
+      note:
+        type: string
+      to_account_id:
+        type: string
+    type: object
+  domain.WithdrawalRequest:
+    properties:
+      account_id:
+        type: string
+      amount:
+        description: cents, must be > 0
+        type: integer
+      idempotency_key:
+        type: string
+      note:
+        type: string
+    type: object
+  handler.CreateAccountRequest:
+    properties:
+      currency:
+        example: USD
+        type: string
+      name:
+        example: Alice
+        type: string
+    type: object
+  handler.ErrorResponse:
+    properties:
+      error:
+        example: account not found
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: A double-entry bookkeeping banking system API supporting accounts,
+    transfers, deposits, withdrawals, and reversals.
+  title: Banking System API
+  version: "1.0"
+paths:
+  /accounts:
+    get:
+      description: Retrieve a list of all bank accounts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Account'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: List all accounts
+      tags:
+      - accounts
+    post:
+      consumes:
+      - application/json
+      description: Create a new bank account with a name and currency
+      parameters:
+      - description: Account creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.CreateAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.Account'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Create a new account
+      tags:
+      - accounts
+  /accounts/{id}:
+    get:
+      description: Retrieve a single bank account by its UUID
+      parameters:
+      - description: Account UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Account'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Get account by ID
+      tags:
+      - accounts
+  /deposits:
+    post:
+      consumes:
+      - application/json
+      description: Deposit external money into a bank account
+      parameters:
+      - description: Deposit request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.DepositRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.Transaction'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Deposit funds into an account
+      tags:
+      - ledger
+  /reversals:
+    post:
+      consumes:
+      - application/json
+      description: Reverse a previously completed transaction
+      parameters:
+      - description: Reversal request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.ReversalRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.Transaction'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Reverse a transaction
+      tags:
+      - ledger
+  /transactions:
+    get:
+      description: Retrieve a list of all transactions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Transaction'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: List all transactions
+      tags:
+      - transactions
+  /transactions/{id}:
+    get:
+      description: Retrieve a single transaction by its UUID
+      parameters:
+      - description: Transaction UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Transaction'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Get transaction by ID
+      tags:
+      - transactions
+  /transfers:
+    post:
+      consumes:
+      - application/json
+      description: Transfer money from one account to another
+      parameters:
+      - description: Transfer request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.TransferRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.Transaction'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Transfer funds between accounts
+      tags:
+      - ledger
+  /withdrawals:
+    post:
+      consumes:
+      - application/json
+      description: Withdraw money from a bank account
+      parameters:
+      - description: Withdrawal request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.WithdrawalRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.Transaction'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Withdraw funds from an account
+      tags:
+      - ledger
+swagger: "2.0"

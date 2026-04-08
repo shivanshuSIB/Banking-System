@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Banking System</title>
+  <link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body>
+
+  <!-- Sidebar Navigation -->
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">B</div>
+      <h2>BankLedger</h2>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#" class="nav-link active" data-page="dashboard">
+        <span class="nav-icon">&#9632;</span> Dashboard
+      </a></li>
+      <li><a href="#" class="nav-link" data-page="accounts">
+        <span class="nav-icon">&#9782;</span> Accounts
+      </a></li>
+      <li><a href="#" class="nav-link" data-page="deposit">
+        <span class="nav-icon">&#8853;</span> Deposit
+      </a></li>
+      <li><a href="#" class="nav-link" data-page="withdraw">
+        <span class="nav-icon">&#8854;</span> Withdraw
+      </a></li>
+      <li><a href="#" class="nav-link" data-page="transfer">
+        <span class="nav-icon">&#8644;</span> Transfer
+      </a></li>
+      <li><a href="#" class="nav-link" data-page="transactions">
+        <span class="nav-icon">&#9776;</span> Transactions
+      </a></li>
+    </ul>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="content">
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- ============ DASHBOARD ============ -->
+    <section id="page-dashboard" class="page active">
+      <h1>Dashboard</h1>
+      <div class="stats-row" id="dashboard-stats">
+        <div class="stat-card">
+          <span class="stat-label">Total Accounts</span>
+          <span class="stat-value" id="stat-accounts">-</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Total Balance</span>
+          <span class="stat-value" id="stat-balance">-</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Transactions</span>
+          <span class="stat-value" id="stat-transactions">-</span>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="card">
+          <h3>Accounts Overview</h3>
+          <table>
+            <thead>
+              <tr><th>Name</th><th>Currency</th><th>Balance</th></tr>
+            </thead>
+            <tbody id="dashboard-accounts"></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Recent Transactions</h3>
+          <table>
+            <thead>
+              <tr><th>Type</th><th>Amount</th><th>Status</th><th>Date</th></tr>
+            </thead>
+            <tbody id="dashboard-transactions"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ACCOUNTS ============ -->
+    <section id="page-accounts" class="page">
+      <h1>Accounts</h1>
+      <div class="card">
+        <h3>Create New Account</h3>
+        <form id="form-create-account" class="form-inline">
+          <div class="form-group">
+            <label for="acc-name">Account Name</label>
+            <input type="text" id="acc-name" placeholder="e.g. Savings" required>
+          </div>
+          <div class="form-group">
+            <label for="acc-currency">Currency</label>
+            <select id="acc-currency">
+              <option value="INR" selected>INR</option>
+            </select>
+          </div>
+          <button type="button" id="btn-create-account" class="btn btn-primary">Create Account</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h3>All Accounts</h3>
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Name</th><th>Currency</th><th>Balance</th><th>Created</th></tr>
+          </thead>
+          <tbody id="accounts-table"></tbody>
+        </table>
+        <p id="accounts-empty" class="empty-msg hidden">No accounts found.</p>
+      </div>
+    </section>
+
+    <!-- ============ DEPOSIT ============ -->
+    <section id="page-deposit" class="page">
+      <h1>Deposit Funds</h1>
+      <div class="card form-card">
+        <form id="form-deposit">
+          <div class="form-group">
+            <label for="dep-account">Account</label>
+            <select id="dep-account" required>
+              <option value="">Select account...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="dep-amount">Amount (&#8377;)</label>
+            <input type="number" id="dep-amount" step="1" min="1" placeholder="0" required>
+          </div>
+          <div class="form-group">
+            <label for="dep-note">Note (optional)</label>
+            <input type="text" id="dep-note" placeholder="e.g. Paycheck">
+          </div>
+          <button type="button" id="btn-deposit" class="btn btn-primary">Deposit</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============ WITHDRAW ============ -->
+    <section id="page-withdraw" class="page">
+      <h1>Withdraw Funds</h1>
+      <div class="card form-card">
+        <form id="form-withdraw">
+          <div class="form-group">
+            <label for="wd-account">Account</label>
+            <select id="wd-account" required>
+              <option value="">Select account...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="wd-amount">Amount (&#8377;)</label>
+            <input type="number" id="wd-amount" step="1" min="1" placeholder="0" required>
+          </div>
+          <div class="form-group">
+            <label for="wd-note">Note (optional)</label>
+            <input type="text" id="wd-note" placeholder="e.g. ATM withdrawal">
+          </div>
+          <button type="button" id="btn-withdraw" class="btn btn-danger">Withdraw</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============ TRANSFER ============ -->
+    <section id="page-transfer" class="page">
+      <h1>Transfer Funds</h1>
+      <div class="card form-card">
+        <form id="form-transfer">
+          <div class="form-group">
+            <label for="tf-from">From Account</label>
+            <select id="tf-from" required>
+              <option value="">Select source...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="tf-to">To Account</label>
+            <select id="tf-to" required>
+              <option value="">Select destination...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="tf-amount">Amount (&#8377;)</label>
+            <input type="number" id="tf-amount" step="1" min="1" placeholder="0" required>
+          </div>
+          <div class="form-group">
+            <label for="tf-note">Note (optional)</label>
+            <input type="text" id="tf-note" placeholder="e.g. Rent payment">
+          </div>
+          <button type="button" id="btn-transfer" class="btn btn-primary">Transfer</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============ TRANSACTIONS ============ -->
+    <section id="page-transactions" class="page">
+      <h1>Transaction History</h1>
+      <div class="card">
+        <div class="table-controls">
+          <div class="filter-group">
+            <label>Filter by type:</label>
+            <select id="tx-filter-type">
+              <option value="">All</option>
+              <option value="DEPOSIT">Deposit</option>
+              <option value="WITHDRAWAL">Withdrawal</option>
+              <option value="TRANSFER">Transfer</option>
+              <option value="REVERSAL">Reversal</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Filter by status:</label>
+            <select id="tx-filter-status">
+              <option value="">All</option>
+              <option value="SUCCESS">Success</option>
+              <option value="PENDING">Pending</option>
+              <option value="FAILED">Failed</option>
+            </select>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Type</th>
+              <th>Amount</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Status</th>
+              <th>Note</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="transactions-table"></tbody>
+        </table>
+        <p id="transactions-empty" class="empty-msg hidden">No transactions found.</p>
+      </div>
+    </section>
+
+    <!-- ============ TRANSACTION DETAIL MODAL ============ -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Transaction Details</h3>
+          <button class="modal-close" id="modal-close">&times;</button>
+        </div>
+        <div class="modal-body" id="modal-body"></div>
+        <div class="modal-footer" id="modal-footer"></div>
+      </div>
+    </div>
+
+    <!-- ============ REVERSAL CONFIRM MODAL ============ -->
+    <div id="reversal-overlay" class="modal-overlay hidden">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Confirm Reversal</h3>
+          <button class="modal-close" id="reversal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to reverse this transaction?</p>
+          <p id="reversal-details" class="reversal-details"></p>
+          <div class="form-group">
+            <label for="reversal-note">Reason (optional)</label>
+            <input type="text" id="reversal-note" placeholder="e.g. Duplicate charge">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="reversal-cancel">Cancel</button>
+          <button class="btn btn-danger" id="reversal-confirm">Reverse Transaction</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="app.js?v=6"></script>
+</body>
+</html>
